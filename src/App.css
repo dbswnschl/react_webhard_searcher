@@ -1,4 +1,9 @@
 
-body{
-    color:red;
+#top_menu ul{
+    list-style: none;
+}
+#top_menu li{
+    display: inline-block;
+    padding-inline-end: 1%;
+    cursor: pointer;
 }
