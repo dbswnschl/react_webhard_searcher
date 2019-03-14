@@ -13,10 +13,11 @@ app.use(cors());
 
 
 ////////////GET////////////
-let search_kdisk = (keyword)=>{
+let search_kdisk = (keyword, row=1)=>{
         return new Promise((resolve,reject)=>{
             let reg_idx=/idx=\"[0-9]{8}\"/g;
             let reg_title = /title = \"(.*)\"/g;
+            let reg_row = /goPage\([0-9]*\)\;/g;
             request(
         
                 {
@@ -26,12 +27,14 @@ let search_kdisk = (keyword)=>{
                     'Content-Type':'text/html; charset=euc-kr',
                     'X-Requested-With': 'XMLHttpRequest'
                 },
-                    uri:"http://www.kdisk.co.kr/main/module/bbs_list_sphinx_proc.php?mode=kdisk&list_row=1&list_count=&p=1&search_type=all&search_type2=title&search_keyword=title&sub_sec=&section=all&hide_adult=N&blind_rights=N&sort_type=default&sm_search=&sm_search_keyword=&plans_idx=&list_type=mnShare_text_list&search="+encodeURI(keyword),
+                    uri:"http://www.kdisk.co.kr/main/module/bbs_list_sphinx_proc.php?mode=kdisk&list_count=&search_type=all&search_type2=title&search_keyword=title&sub_sec=&section=all&hide_adult=N&blind_rights=N&sort_type=default&sm_search=&sm_search_keyword=&plans_idx=&list_type=mnShare_text_list&p="+row+"&list_row="+row+"&search="+encodeURI(keyword),
             }, (err, response, body) => {
                 var txt = JSON.parse(body).list;
-                
+                var pagingtxt = JSON.parse(body).paging;
                 let idx = txt.match(reg_idx);
                 let title = txt.match(reg_title);
+                let tmp_row = pagingtxt.match(reg_row);
+                let max_row = tmp_row==null?1:tmp_row.length;
                 let returnObj = [];
                 if(idx != null){
                 for ( i = 0 ; i < idx.length ; i +=1){
@@ -44,7 +47,7 @@ let search_kdisk = (keyword)=>{
         
                 console.log(title.length);
         
-                resolve(JSON.stringify(returnObj));
+                resolve(JSON.stringify({search_result:returnObj,max_row:max_row}));
             }else{
                 reject(null);
             }
@@ -58,7 +61,10 @@ app.get('/api/search_webhard/', (req, res) => {
     let keyword = req.query["keyword"];
     console.log(mode);
     if (mode == "kdisk") {
-        search_kdisk(keyword).then(
+        let row = req.query["row"];
+        if( typeof(row) == "undefined")
+            row = 1;
+        search_kdisk(keyword,row).then(
             result=>{
                 res.send(result);
             }
