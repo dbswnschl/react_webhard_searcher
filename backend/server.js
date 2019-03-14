@@ -13,50 +13,70 @@ app.use(cors());
 
 
 ////////////GET////////////
+let search_kdisk = (keyword)=>{
+        return new Promise((resolve,reject)=>{
+            let reg_idx=/idx=\"[0-9]{8}\"/g;
+            let reg_title = /title = \"(.*)\"/g;
+            request(
+        
+                {
+                    method:'GET',
+                    encoding:null,
+                    headers:{'User-Agent':"Mozilla/5.0",
+                    'Content-Type':'text/html; charset=euc-kr',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                    uri:"http://www.kdisk.co.kr/main/module/bbs_list_sphinx_proc.php?mode=kdisk&list_row=1&list_count=&p=1&search_type=all&search_type2=title&search_keyword=title&sub_sec=&section=all&hide_adult=N&blind_rights=N&sort_type=default&sm_search=&sm_search_keyword=&plans_idx=&list_type=mnShare_text_list&search="+encodeURI(keyword),
+            }, (err, response, body) => {
+                var txt = JSON.parse(body).list;
+                
+                let idx = txt.match(reg_idx);
+                let title = txt.match(reg_title);
+                let returnObj = [];
+                if(idx != null){
+                for ( i = 0 ; i < idx.length ; i +=1){
+                    idx[i] = idx[i].substring(5,idx[i].length-1);
+                    title[i] = title[i].substring(9,title[i].length-1);
+                    returnObj.push({
+                        idx:idx[i],title:title[i]
+                    });
+                }
+        
+                console.log(title.length);
+        
+                resolve(JSON.stringify(returnObj));
+            }else{
+                reject(null);
+            }
+            });
+        });   
+}
+
+
 app.get('/api/search_webhard/', (req, res) => {
     let mode = req.query["mode"];
     let keyword = req.query["keyword"];
     console.log(mode);
-    var result = "";
     if (mode == "kdisk") {
-        let reg_idx=/idx=\"[0-9]{8}\"/g;
-        let reg_title = /title = \"(.*)\"/g;
-        request(
-            
-            {
-                method:'GET',
-                encoding:null,
-                headers:{'User-Agent':"Mozilla/5.0",
-                'Content-Type':'text/html; charset=euc-kr',
-                'X-Requested-With': 'XMLHttpRequest'
-            },
-                uri:"http://www.kdisk.co.kr/main/module/bbs_list_sphinx_proc.php?mode=kdisk&list_row=1&list_count=&p=1&search_type=all&search_type2=title&search_keyword=title&sub_sec=&section=all&hide_adult=N&blind_rights=N&sort_type=default&sm_search=&sm_search_keyword=&plans_idx=&list_type=mnShare_text_list&search="+keyword,
-        }, (err, response, body) => {
-            var txt = JSON.parse(body).list;
-            
-            let idx = txt.match(reg_idx);
-            let title = txt.match(reg_title);
-            let returnObj = [];
-            if(idx != null){
-            for ( i = 0 ; i < idx.length ; i +=1){
-                idx[i] = idx[i].substring(5,idx[i].length-1);
-                title[i] = title[i].substring(9,title[i].length-1);
-                returnObj.push({
-                    idx:idx[i],title:title[i]
-                });
+        search_kdisk(keyword).then(
+            result=>{
+                res.send(result);
             }
-
-            console.log(title.length);
-
-            res.send(JSON.stringify(returnObj));
-        }else{
-            res.send(null);
-        }
+        ).catch(result=>{
+            console.log("[ERR] kdisk 에러");
+            res.send(result);
         });
-
-
-
+    }else if(mode == "all"){
+        search_kdisk(keyword).then(
+            result=>{
+                res.send(result);
+            }
+        ).catch(result=>{
+            console.log("[ERR] kdisk 에러");
+            res.send(result);
+        });
     }
+
 
 
 });
