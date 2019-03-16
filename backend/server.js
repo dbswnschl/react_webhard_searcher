@@ -142,7 +142,7 @@ app.get('/api/search_webhard/', (req, res) => {
     })
         .catch(result => {
             console.log("[ERR]에러");
-            res.write(result);
+            res.send(null);
         });
 
 

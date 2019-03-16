@@ -8,10 +8,15 @@ let search_request = (mode, keyword, row = 1) => {
     console.log("http://" + process.env.SERVER_ADDR + ":" + process.env.SERVER_PORT);
     return new Promise((resolve, reject) => {
         axios.get("http://" + process.env.SERVER_ADDR + ":" + process.env.SERVER_PORT + "/api/search_webhard?row=" + row + "&mode=" + mode + "&keyword=" + encodeURI(keyword)).then(result => {
-            resolve(result);
+        if(result.data.length == 0 ){
+            alert("검색 결과가 없습니다.");
+            reject(null);
+        }    
+        resolve(result);
 
         }).catch(
             result => {
+                console.log("ERR");
                 reject(result);
             }
         );
