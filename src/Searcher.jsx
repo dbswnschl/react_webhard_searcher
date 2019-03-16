@@ -1,12 +1,13 @@
 import React from "react";
 import ReactDOM from "react-dom";
-import Kdisk_Search from './kdisk.jsx';
-import axios from 'axios';
-import jsonAdapter from 'axios-jsonp'
+// import Dotenv from"dotenv";
 
+import axios from 'axios';
 let search_request = (mode, keyword, row = 1) => {
+
+    console.log("http://"+process.env.SERVER_ADDR+":"+process.env.SERVER_PORT);
     return new Promise((resolve, reject) => {
-        axios.get("http://127.0.0.1:5000/api/search_webhard?row=" + row + "&mode=" + mode + "&keyword=" + encodeURI(keyword)).then(result => {
+        axios.get("http://"+process.env.SERVER_ADDR+":"+process.env.SERVER_PORT+"/api/search_webhard?row=" + row + "&mode=" + mode + "&keyword=" + encodeURI(keyword)).then(result => {
             resolve(result);
         }).catch(
             result => {

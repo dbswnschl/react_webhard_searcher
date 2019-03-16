@@ -28,6 +28,8 @@
     "babel-loader": "^8.0.5",
     "cors": "^2.8.5",
     "css-loader": "^2.1.0",
+    "dotenv": "^7.0.0",
+    "dotenv-webpack": "^1.7.0",
     "express": "^4.16.4",
     "file-loader": "^3.0.1",
     "html-loader": "^0.5.5",
