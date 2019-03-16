@@ -5,7 +5,7 @@ import ReactDOM from "react-dom";
 const App= ()=>{
     return(
         <div>
-            <p>this is react div</p>
+            <p>Contact : dbswnschl@gmail.com</p>
         </div>
     );
 };
