@@ -122,7 +122,7 @@ let search_filejo = (keyword, row = 1) => {
                 'X-Requested-With': 'XMLHttpRequest'
             },encoding:null,
         }, (err, response, body) => {
-            let strContents = iconv.decode(new Buffer(body),'EUC-KR').toString();
+            let strContents = iconv.decode(new Buffer.from(body),'EUC-KR').toString();
             let title = strContents.match(/\<span style=\'color:(.*);font-weight:(.*);\'\>(.*)\<\/span\>/g);
             let pagingtxt = strContents.match(/javascript:div_sorting\(/g);
             let idxs = strContents.match(/winBbsInfo\(\'(.*)\'/g);
@@ -171,7 +171,7 @@ app.get('/api/search_webhard/', (req, res) => {
         let row = req.query["row"];
         if (typeof (row) == "undefined")
             row = 1;
-        filejo_ondisk(keyword, row).then(
+        search_filejo(keyword, row).then(
             result => {
                 res.send({ filejo: result });
             }
@@ -181,7 +181,6 @@ app.get('/api/search_webhard/', (req, res) => {
         });
     } else if (mode == "all") {
         result_obj = {}
-    };
     res.setHeader("Content-Type", "application/json")
     search_kdisk(keyword).then(
         result => {
@@ -208,6 +207,7 @@ app.get('/api/search_webhard/', (req, res) => {
             res.send(null);
         });
 
+    };
 
 
 

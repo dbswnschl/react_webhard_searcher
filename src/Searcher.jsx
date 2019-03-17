@@ -46,7 +46,7 @@ class Searcher extends React.Component {
     handleClick() {
         search_request("all", this.state.search_keyword).then(
             result => {
-                this.setState({ kdisk: JSON.parse(result.data.kdisk), ondisk: JSON.parse(result.data.ondisk) })
+                this.setState({ kdisk: JSON.parse(result.data.kdisk), ondisk: JSON.parse(result.data.ondisk),filejo:JSON.parse(result.data.filejo) });
                 // this.setState({ kdisk_max_row: result.data.max_row, kdisk_search_result: result.data.search_result });
             }
         );
@@ -56,6 +56,7 @@ class Searcher extends React.Component {
             let tmp = {}
             tmp[mode+""] = JSON.parse(result.data[mode+""]);
             this.setState(tmp);
+            console.log(this.state);
         })
 
     }
@@ -77,6 +78,14 @@ class Searcher extends React.Component {
             row.push(<a key={"goPage_ondisk" + (i + 1)} style={rowStyle} onClick={() => this.pageChange("ondisk",i + 1)} >{i + 1}</a>);
         }
         return row;
+    }
+    createFilejoRow(){
+        let row = []
+        for (let i = 0 ; i < this.state.filejo.max_row ; i+=1){
+            row.push(<a key={"goPage_filejo" + (i + 1)} style={rowStyle} onClick={() => this.pageChange("filejo",i + 1)} >{i + 1}</a>);
+        }
+        return row;
+
     }
     render() {
         return (
@@ -106,6 +115,17 @@ class Searcher extends React.Component {
                 </ul>
                 <div>
                     {(this.state.ondisk) && (this.state.ondisk.max_row) ? this.createOndiskRow() : null}
+                </div>
+                <br />
+                <h4>FileJo</h4>
+                <ul>
+                    {(this.state.filejo) && (this.state.filejo.search_result) ? this.state.filejo.search_result.map((obj, i) => {
+                        return <li key={'filejo_search_result' + i}><a href={'http://www.filejo.com/main/popup/bbs_info.php?idx=' + obj.idx} target="_blank">[{obj.idx}] {obj.title}</a></li>
+                    }) : null
+                    }
+                </ul>
+                <div>
+                    {(this.state.filejo) && (this.state.filejo.max_row) ? this.createFilejoRow() : null}
                 </div>
             </div>
         );
