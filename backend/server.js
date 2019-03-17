@@ -4,7 +4,7 @@ const app = express();
 const port = process.env.SERVER_PORT || 5000;
 let cors = require('cors');
 var request = require('request');
-var Iconv = require('iconv').Iconv;
+var iconv = require('iconv-lite');
 var urlencode = require('urlencode');
 var jschardet = require('jschardet');
 app.use(bodyParser.json());
@@ -16,7 +16,7 @@ let reg_title = /title[ ]*=[ ]*\"(.*)\"/g;
 let reg_row = /goPage\([0-9]*\)\;/g;
 ////////////GET////////////
 let search_kdisk = (keyword, row = 1) => {
-    
+
     return new Promise((resolve, reject) => {
         request(
 
@@ -40,13 +40,12 @@ let search_kdisk = (keyword, row = 1) => {
                 if (idx != null) {
                     for (i = 0; i < idx.length; i += 1) {
                         idx[i] = idx[i].substring(5, idx[i].length - 1);
-                        title[i] = title[i*2].substring(9, title[i*2].length - 1);
+                        title[i] = title[i * 2].substring(9, title[i * 2].length - 1);
                         returnObj.push({
                             idx: idx[i], title: title[i]
                         });
                     }
 
-                    console.log(title.length);
 
                     resolve(JSON.stringify({ search_result: returnObj, max_row: max_row }));
                 } else {
@@ -72,9 +71,8 @@ let search_ondisk = (keyword, row = 1) => {
             var pagingtxt = JSON.parse(body).paging;
             let idx = txt.match(reg_idx);
             let title = txt.match(reg_title);
-            console.log(title);
             let tmp_row = pagingtxt.match(/doPageMove\([0-9]+\)/g);
-            let max_row = tmp_row == null ? 1 : tmp_row.length -1;
+            let max_row = tmp_row == null ? 1 : tmp_row.length - 1;
             let returnObj = [];
             if (idx != null) {
                 for (i = 0; i < idx.length; i += 1) {
@@ -84,7 +82,6 @@ let search_ondisk = (keyword, row = 1) => {
                         idx: idx[i], title: title[i]
                     });
                 }
-                console.log(returnObj);
                 resolve(JSON.stringify({ search_result: returnObj, max_row: max_row }));
             } else {
                 reject(null);
@@ -93,34 +90,93 @@ let search_ondisk = (keyword, row = 1) => {
     });
 
 }
+let search_filejo = (keyword, row = 1) => {
+    return new Promise((resolve, reject) => {
+        request({
+            method: "POST",
+            uri: "http://www.filejo.com/main/doc/storage/list_div.php?t=1552787910531",
+            form: {
+                search: keyword,
+                search_keyword: 'total',
+                search_type: 'all',
+                section: 'all',
+                sub_sec: '',
+                list_count: 25,
+                skn: 'storageDiv',
+                search_sort: '',
+                con_tot: 31047,
+                reSearch: '',
+                RealSearch: '',
+                searchAdult: '',
+                pageViewType: 'bbsType',
+                introList: '',
+                req_cate: '',
+                search_cpPrc: '',
+                search_friend: '',
+                searChk: 'searChk',
+                p: row,
+            },
+            headers: {
+                'User-Agent': "Mozilla/5.0",
+                'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+                'X-Requested-With': 'XMLHttpRequest'
+            },encoding:null,
+        }, (err, response, body) => {
+            let strContents = iconv.decode(new Buffer(body),'EUC-KR').toString();
+            let title = strContents.match(/\<span style=\'color:(.*);font-weight:(.*);\'\>(.*)\<\/span\>/g);
+            let pagingtxt = strContents.match(/javascript:div_sorting\(/g);
+            let idxs = strContents.match(/winBbsInfo\(\'(.*)\'/g);
+            let returnObj = [];
+            for(let i = 0 ; i < idxs.length ; i +=1){
+                returnObj.push({
+                    idx: idxs[i].replace(/[A-Z]|[a-z]|\'/ig,""),
+                    title: title[i].replace(/(<([^>]+)>)/ig,"")
+                })
+            }
+            max_row = pagingtxt.length-1;
+            resolve(JSON.stringify({ search_result: returnObj, max_row: max_row }));
+        });
+    });
 
+}
 
 app.get('/api/search_webhard/', (req, res) => {
     let mode = req.query["mode"];
     let keyword = req.query["keyword"];
-    console.log(mode);
     if (mode == "kdisk") {
         let row = req.query["row"];
         if (typeof (row) == "undefined")
             row = 1;
         search_kdisk(keyword, row).then(
             result => {
-                res.send({kdisk:result});
+                res.send({ kdisk: result });
             }
         ).catch(result => {
             console.log("[ERR] kdisk 에러");
             res.send(result);
         });
-    }else if(mode == "ondisk"){
+    } else if (mode == "ondisk") {
         let row = req.query["row"];
         if (typeof (row) == "undefined")
             row = 1;
         search_ondisk(keyword, row).then(
             result => {
-                res.send({ondisk:result});
+                res.send({ ondisk: result });
             }
         ).catch(result => {
             console.log("[ERR] ondisk 에러");
+            res.send(result);
+        });
+    }else if (mode == "filejo") {
+        let row = req.query["row"];
+        if (typeof (row) == "undefined")
+            row = 1;
+        filejo_ondisk(keyword, row).then(
+            result => {
+                res.send({ filejo: result });
+            }
+        ).catch(result => {
+            console.log("[ERR] filejo 에러");
             res.send(result);
         });
     } else if (mode == "all") {
@@ -137,7 +193,14 @@ app.get('/api/search_webhard/', (req, res) => {
                 result_obj.ondisk = result;
             }
         ).then(_ => {
-            res.send(result_obj);
+            search_filejo(keyword).then(
+                result=>{
+                    result_obj.filejo = result;
+                }
+            ).then(_=>{
+                res.send(result_obj);
+            })
+            
         })
     })
         .catch(result => {
