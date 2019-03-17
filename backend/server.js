@@ -128,8 +128,10 @@ let search_filejo = (keyword, row = 1) => {
             let idxs = strContents.match(/winBbsInfo\(\'(.*)\'/g);
             let returnObj = [];
             for(let i = 0 ; i < idxs.length ; i +=1){
+                idx = idxs[i].replace(/[A-Z]|[a-z]|\'|\(/ig,"");
+                
                 returnObj.push({
-                    idx: idxs[i].replace(/[A-Z]|[a-z]|\'/ig,""),
+                    idx: idx.substring(0,idx.length-2),
                     title: title[i].replace(/(<([^>]+)>)/ig,"")
                 })
             }

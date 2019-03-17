@@ -56,7 +56,6 @@ class Searcher extends React.Component {
             let tmp = {}
             tmp[mode+""] = JSON.parse(result.data[mode+""]);
             this.setState(tmp);
-            console.log(this.state);
         })
 
     }
