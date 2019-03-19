@@ -72,7 +72,7 @@ let search_ondisk = (keyword, row = 1) => {
             let idx = txt.match(reg_idx);
             let title = txt.match(reg_title);
             let tmp_row = pagingtxt.match(/doPageMove\([0-9]+\)/g);
-            let max_row = tmp_row == null ? 1 : tmp_row.length - 1;
+            let max_row = tmp_row == null || tmp_row.length == 1 ? 1 : tmp_row.length-1;
             let returnObj = [];
             if (idx != null) {
                 for (i = 0; i < idx.length; i += 1) {
@@ -135,7 +135,12 @@ let search_filejo = (keyword, row = 1) => {
                     title: title[i].replace(/(<([^>]+)>)/ig,"")
                 })
             }
+            if(pagingtxt == null){
+                max_row = 1;
+            }else{
             max_row = pagingtxt.length-1;
+            }
+
             resolve(JSON.stringify({ search_result: returnObj, max_row: max_row }));
         });
     });
