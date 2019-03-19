@@ -90,6 +90,11 @@ class Searcher extends React.Component {
     }
     createFilejoRow(){
         let row = []
+        if(this.state.filejo.max_row == '0'){
+            return <b>검색 결과가 없습니다!</b>;
+        }
+        
+
         for (let i = 0 ; i < this.state.filejo.max_row ; i+=1){
             row.push(<a key={"goPage_filejo" + (i + 1)} style={rowStyle} onClick={() => this.pageChange("filejo",i + 1)} >{i + 1}</a>);
         }
@@ -138,7 +143,7 @@ class Searcher extends React.Component {
                 <ul>
                     {(this.state.kdisk) && (this.state.kdisk.search_result) ? this.state.kdisk.search_result.map((obj, i) => {
                         return <li key={'kdisk_search_result' + i}><a href={'http://www.kdisk.co.kr/pop.php?sm=bbs_info&idx=' + obj.idx} target="_blank">[{obj.idx}] {obj.title}</a></li>
-                    }) : null
+                    }):this.state.kdisk && (this.state.kdisk.max_row == 0)? <b>검색 결과가 존재하지 않습니다!</b> : null
                     }
                 </ul>
                 <div>
@@ -149,7 +154,7 @@ class Searcher extends React.Component {
                 <ul>
                     {(this.state.ondisk) && (this.state.ondisk.search_result) ? this.state.ondisk.search_result.map((obj, i) => {
                         return <li key={'ondisk_search_result' + i}><a href={'http://ondisk.co.kr/pop.php?sm=bbs_info&idx=' + obj.idx} target="_blank">[{obj.idx}] {obj.title}</a></li>
-                    }) : null
+                    }):this.state.ondisk && (this.state.ondisk.max_row == 0)? <b>검색 결과가 존재하지 않습니다!</b> : null
                     }
                 </ul>
                 <div>
@@ -160,7 +165,7 @@ class Searcher extends React.Component {
                 <ul>
                     {(this.state.filejo) && (this.state.filejo.search_result) ? this.state.filejo.search_result.map((obj, i) => {
                         return <li key={'filejo_search_result' + i}><a href={'http://www.filejo.com/main/popup/bbs_info.php?idx=' + obj.idx} target="_blank">[{obj.idx}] {obj.title}</a></li>
-                    }) : null
+                    }) :this.state.filejo && (this.state.filejo.max_row == 0)? <b>검색 결과가 존재하지 않습니다!</b> :null
                     }
                 </ul>
                 <div>

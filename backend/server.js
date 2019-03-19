@@ -49,7 +49,7 @@ let search_kdisk = (keyword, row = 1) => {
 
                     resolve(JSON.stringify({ search_result: returnObj, max_row: max_row }));
                 } else {
-                    reject(null);
+                    resolve(JSON.stringify({ max_row: 0 }));
                 }
             });
     });
@@ -74,6 +74,7 @@ let search_ondisk = (keyword, row = 1) => {
             let tmp_row = pagingtxt.match(/doPageMove\([0-9]+\)/g);
             let max_row = tmp_row == null || tmp_row.length == 1 ? 1 : tmp_row.length-1;
             let returnObj = [];
+            
             if (idx != null) {
                 for (i = 0; i < idx.length; i += 1) {
                     idx[i] = idx[i].substring(5, idx[i].length - 1);
@@ -84,7 +85,7 @@ let search_ondisk = (keyword, row = 1) => {
                 }
                 resolve(JSON.stringify({ search_result: returnObj, max_row: max_row }));
             } else {
-                reject(null);
+                resolve(JSON.stringify({ max_row: 0 }));
             }
         })
     });
@@ -124,9 +125,10 @@ let search_filejo = (keyword, row = 1) => {
         }, (err, response, body) => {
             let strContents = iconv.decode(new Buffer.from(body),'EUC-KR').toString();
             let title = strContents.match(/\<span style=\'color:(.*);font-weight:(.*);\'\>(.*)\<\/span\>/g);
-            let pagingtxt = strContents.match(/javascript:div_sorting\(/g);
+            let pagingtxt = strContents.match(/javascript:div_sorting\((.*)\<\/td\>/g);
             let idxs = strContents.match(/winBbsInfo\(\'(.*)\'/g);
             let returnObj = [];
+            if(idxs != null){
             for(let i = 0 ; i < idxs.length ; i +=1){
                 idx = idxs[i].replace(/[A-Z]|[a-z]|\'|\(/ig,"");
                 
@@ -140,8 +142,12 @@ let search_filejo = (keyword, row = 1) => {
             }else{
             max_row = pagingtxt.length-1;
             }
-
             resolve(JSON.stringify({ search_result: returnObj, max_row: max_row }));
+            }else{
+                resolve(JSON.stringify({ max_row: 0 }));
+            }
+            
+            
         });
     });
 
