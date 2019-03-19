@@ -1,7 +1,8 @@
 import React from "react";
 import ReactDOM from "react-dom";
 // import Dotenv from"dotenv";
-
+import Animated from 'animated/lib/targets/react-dom';
+import Easing from 'animated/lib/Easing';
 import axios from 'axios';
 let search_request = (mode, keyword, row = 1) => {
 
@@ -34,28 +35,37 @@ class Searcher extends React.Component {
         this.state = {
             search_keyword: '',
             search_result: '',
+            loading:false,
         };
         this.handleChange = this.handleChange.bind(this);
         this.handleClick = this.handleClick.bind(this);
         this.handleKeyPress = this.handleKeyPress.bind(this);
         this.pageChange = this.pageChange.bind(this);
+        this.animatedValue = new Animated.Value(0);
     };
     handleChange(e) {
         this.setState({ search_keyword: e.target.value });
     };
     handleClick() {
+        this.setState({loading:false});
+        this.animate();
+
         search_request("all", this.state.search_keyword).then(
             result => {
-                this.setState({ kdisk: JSON.parse(result.data.kdisk), ondisk: JSON.parse(result.data.ondisk),filejo:JSON.parse(result.data.filejo) });
+                this.setState({ kdisk: JSON.parse(result.data.kdisk), ondisk: JSON.parse(result.data.ondisk),filejo:JSON.parse(result.data.filejo), loading:true });
                 // this.setState({ kdisk_max_row: result.data.max_row, kdisk_search_result: result.data.search_result });
+                
             }
         );
     };
     pageChange(mode,row) {
+        this.setState({loading:false});
+        this.animate();
         search_request(mode, this.state.search_keyword, row).then(result => {
             let tmp = {}
             tmp[mode+""] = JSON.parse(result.data[mode+""]);
             this.setState(tmp);
+            this.setState({loading:true});
         })
 
     }
@@ -86,13 +96,43 @@ class Searcher extends React.Component {
         return row;
 
     }
+
+    animate(){
+        this.animatedValue.setValue(0);
+        Animated.timing(
+            this.animatedValue,{
+                toValue:1,
+                duration:1000,
+                easing: Easing.elastic(1)
+            }
+        ).start();
+    }
+
     render() {
+        let marginLeft = this.animatedValue.interpolate({
+            inputRange: [0,1],
+            outputRange:[-120,0]
+        })
         return (
             <div>
                 <p>검색기 메인</p>
                 <input id="search_bar" type="text" placeholder="검색 내용을 입력" onChange={this.handleChange} onKeyPress={this.handleKeyPress} />
                 <button onClick={this.handleClick}>검색</button>
                 <hr />
+                {
+                    this.state.loading == false ? 
+                <Animated.div style={
+                    Object.assign({},{
+                        opacity:this.animatedValue,marginLeft, position:"fixed", "textAlign":"center", top:"50%", left:"50%"
+                    })
+                }>
+                    <p style={
+                        Object.assign({},{
+                            position:"relative",top:"-50%", left: "-50%", border:"solid 1px ", padding:"50px"
+                        })
+                    }>Loading!</p>
+                </Animated.div> : null
+                }
                 <br />
                 <h4>Kdisk</h4>
                 <ul>
